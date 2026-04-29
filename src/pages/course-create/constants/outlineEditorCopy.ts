@@ -51,7 +51,7 @@ export const LABEL_SAVED = '已保存';
 
 export const BTN_SAVE = '保存';
 
-export const BTN_NEXT_MATERIAL = '下一步：素材匹配';
+export const BTN_NEXT_MATERIAL = '下一步：课件生成';
 
 export const QUALITY_ITEMS: ReadonlyArray<{
   icon: string;
@@ -91,7 +91,7 @@ export const QUALITY_ITEMS: ReadonlyArray<{
     bg: 'bg-amber-50',
     border: 'border-amber-200',
     label: '建议',
-    text: '各模块学时占比建议标注百分比，便于与第四步素材匹配对齐。',
+    text: '各模块学时占比建议标注百分比，便于与下一步课件生成对齐。',
   },
   {
     icon: 'ri-information-line',

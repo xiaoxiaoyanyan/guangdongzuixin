@@ -34,7 +34,7 @@ interface ImportMetaEnv {
   /** 步骤四终端用户标识（默认 course-create-step4） */
   readonly VITE_DIFY_STEP4_USER_ID?: string;
 
-  /** 阿里云市场 iSlide：AppCode（第五步课件生成，勿提交仓库） */
+  /** 阿里云市场 iSlide：AppCode（第四步课件生成，勿提交仓库） */
   readonly VITE_ISLIDE_APPCODE?: string;
 }
 

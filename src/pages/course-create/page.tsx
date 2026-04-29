@@ -9,7 +9,7 @@ import CourseAnalysisInputPanel, { type AnalysisFormData } from './components/Co
 import CourseAnalysisOutputPanel from './components/CourseAnalysisOutputPanel';
 import CourseAnalysisResultEditor from './components/CourseAnalysisResultEditor';
 import CourseOutlineEditor from './components/CourseOutlineEditor';
-import MaterialMatchingEditor, { INITIAL_SLIDES } from './components/MaterialMatchingEditor';
+import { INITIAL_SLIDES } from './components/MaterialMatchingEditor';
 import CoursewareGenerationEditor from './components/CoursewareGenerationEditor';
 import CoursewareReviewEditor from './components/CoursewareReviewEditor';
 import InstructorManualEditor from './components/InstructorManualEditor';
@@ -27,6 +27,7 @@ import {
   runStep2CourseAnalysisEvaluation,
   runStep2LearnerGoalsDesign,
 } from '../../services/dify/step2Analysis';
+import { isDifyStep4Configured, runStep4PptOutline } from '../../services/dify/step4PptOutline';
 
 /* ─── Step 1 constants ─── */
 const DEFAULT_FORM: CourseFormData = {
@@ -99,7 +100,7 @@ const CourseCreatePage = () => {
   /* ── Saved course tracking ── */
   const [savedCourseId, setSavedCourseId] = useState<string | null>(null);
 
-  /* ── Step 4 → 5：素材匹配页幻灯片大纲（供第五步生成 PPT） ── */
+  /* ── 课件页大纲（供第四步生成 PPT） ── */
   const [materialSlides, setMaterialSlides] = useState<MaterialSlide[]>(() =>
     INITIAL_SLIDES.map((s) => ({ ...s, media: { ...s.media } }))
   );
@@ -227,38 +228,42 @@ const CourseCreatePage = () => {
     setCurrentStep(2);
   };
 
+  const prepareMaterialSlides = async () => {
+    if (!isDifyStep4Configured()) return;
+    try {
+      const slides = await runStep4PptOutline(analysisForm.topicName, step2ResultData);
+      setMaterialSlides(slides);
+    } catch {
+      setMaterialSlides(INITIAL_SLIDES.map((s) => ({ ...s, media: { ...s.media } })));
+    }
+  };
+
   /* ── Step 3 → Step 4 ── */
   const handleStep3Next = () => {
     if (savedCourseId) updateCourseProgress(savedCourseId, 2, 37);
     setCompletedThrough((m) => Math.max(m, 2));
     setCurrentStep(3);
+    void prepareMaterialSlides();
   };
 
   /* ── Step 4 → Step 5 ── */
   const handleStep4Next = () => {
-    if (savedCourseId) updateCourseProgress(savedCourseId, 2, 50);
+    if (savedCourseId) updateCourseProgress(savedCourseId, 3, 62);
     setCompletedThrough((m) => Math.max(m, 3));
     setCurrentStep(4);
   };
 
   /* ── Step 5 → Step 6 ── */
   const handleStep5Next = () => {
-    if (savedCourseId) updateCourseProgress(savedCourseId, 3, 62);
+    if (savedCourseId) updateCourseProgress(savedCourseId, 4, 81);
     setCompletedThrough((m) => Math.max(m, 4));
     setCurrentStep(5);
   };
 
-  /* ── Step 6 → Step 7 ── */
+  /* ── Step 6：完成并返回课程列表 ── */
   const handleStep6Next = () => {
-    if (savedCourseId) updateCourseProgress(savedCourseId, 3, 75);
-    setCompletedThrough((m) => Math.max(m, 5));
-    setCurrentStep(6);
-  };
-
-  /* ── Step 7（讲师手册）→ 完成并返回课程列表（第八步课程脚本已隐藏） ── */
-  const handleStep7Next = () => {
     if (savedCourseId) updateCourseProgress(savedCourseId, 5, 100);
-    setCompletedThrough((m) => Math.max(m, 6));
+    setCompletedThrough((m) => Math.max(m, 5));
     navigate('/ai-course');
   };
 
@@ -275,7 +280,7 @@ const CourseCreatePage = () => {
             <i className="ri-magic-line text-white text-sm" />
           </div>
           <div className="leading-tight">
-            <p className="text-[11px] text-gray-400 font-medium">七步成诗</p>
+            <p className="text-[11px] text-gray-400 font-medium">六步成课</p>
             <p className="text-[12px] text-gray-800 font-bold -mt-0.5">AI制课</p>
           </div>
         </div>
@@ -427,26 +432,12 @@ const CourseCreatePage = () => {
           </div>
         )}
 
-        {/* ─ STEP 4: 素材匹配 ─ */}
+        {/* ─ STEP 4: 课件生成 ─ */}
         {currentStep === 3 && (
           <div className="flex-1 flex flex-col min-h-0" style={{ maxHeight: 'calc(100vh - 130px)' }}>
-            <MaterialMatchingEditor
+            <CoursewareGenerationEditor
               onBack={() => setCurrentStep(2)}
               onNext={handleStep4Next}
-              slides={materialSlides}
-              onSlidesChange={setMaterialSlides}
-              courseTitle={analysisForm.topicName}
-              courseAnalysis={step2ResultData}
-            />
-          </div>
-        )}
-
-        {/* ─ STEP 5: 课件生成 ─ */}
-        {currentStep === 4 && (
-          <div className="flex-1 flex flex-col min-h-0" style={{ maxHeight: 'calc(100vh - 130px)' }}>
-            <CoursewareGenerationEditor
-              onBack={() => setCurrentStep(3)}
-              onNext={handleStep5Next}
               courseTitle={
                 analysisForm.topicName.trim() ||
                 form.topicName.trim() ||
@@ -458,22 +449,22 @@ const CourseCreatePage = () => {
           </div>
         )}
 
-        {/* ─ STEP 6: 课件审核 ─ */}
-        {currentStep === 5 && (
+        {/* ─ STEP 5: 课件审核 ─ */}
+        {currentStep === 4 && (
           <div className="flex-1 flex flex-col min-h-0" style={{ maxHeight: 'calc(100vh - 130px)' }}>
             <CoursewareReviewEditor
-              onBack={() => setCurrentStep(4)}
-              onNext={handleStep6Next}
+              onBack={() => setCurrentStep(3)}
+              onNext={handleStep5Next}
             />
           </div>
         )}
 
-        {/* ─ STEP 7: 讲师手册 ─ */}
-        {currentStep === 6 && (
+        {/* ─ STEP 6: 讲师手册 ─ */}
+        {currentStep === 5 && (
           <div className="flex-1 flex flex-col min-h-0" style={{ maxHeight: 'calc(100vh - 130px)' }}>
             <InstructorManualEditor
-              onBack={() => setCurrentStep(5)}
-              onNext={handleStep7Next}
+              onBack={() => setCurrentStep(4)}
+              onNext={handleStep6Next}
             />
           </div>
         )}

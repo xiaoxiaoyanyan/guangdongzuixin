@@ -2,10 +2,9 @@ const STEPS = [
   { num: '第一步', label: '选题评估' },
   { num: '第二步', label: '课程分析' },
   { num: '第三步', label: '课程大纲' },
-  { num: '第四步', label: '素材匹配' },
-  { num: '第五步', label: '课件生成' },
-  { num: '第六步', label: '课件审核' },
-  { num: '第七步', label: '讲师手册' },
+  { num: '第四步', label: '课件生成' },
+  { num: '第五步', label: '课件审核' },
+  { num: '第六步', label: '讲师手册' },
 ];
 
 /** 箭头斜切宽度（px），与 margin 负值重叠配套 */
@@ -25,7 +24,7 @@ function clipPathFor(index: number, total: number): string {
 
 interface StepBarProps {
   currentStep?: number;
-  /** 已通过「下一步」推进完成的最后一步索引（0–6），-1 表示尚无 */
+  /** 已通过「下一步」推进完成的最后一步索引，-1 表示尚无 */
   completedThrough?: number;
   onStepClick?: (stepIndex: number) => void;
 }

@@ -2,7 +2,7 @@
  * 步骤四 · 课件 PPT 三级大纲（工作流）
  *
  * 依据前序步骤：课程名称、学员画像、课程目标（知识/技能/态度）、课程设计解决思路，
- * 生成与素材匹配页一致的「逐页」大纲结构，供 MaterialMatchingEditor 展示与配素材。
+ * 生成课件逐页大纲结构，供后续课件生成步骤使用。
  */
 import type { CourseAnalysisResultData } from './step2-parse';
 

@@ -94,7 +94,7 @@ interface Props {
   onNext: () => void;
   /** 课题名称 */
   courseTitle: string;
-  /** 第四步素材匹配页的逐页大纲 */
+  /** 上一步准备好的逐页大纲 */
   materialSlides: MaterialSlide[];
 }
 
@@ -146,12 +146,12 @@ const CoursewareGenerationEditor = ({
     setPptUrl(null);
 
     if (materialSlides.length === 0) {
-      setGenError('第四步大纲为空，请返回上一步生成或编辑课件页大纲。');
+      setGenError('上一步大纲为空，请返回课程大纲页后重新进入。');
       return;
     }
 
     if (materialSlides.length > 45) {
-      setGenError('幻灯片页数过多（建议≤45页），请在第四步精简后再生成。');
+      setGenError('幻灯片页数过多（建议≤45页），请先精简课程大纲后再生成。');
       return;
     }
 
@@ -165,7 +165,7 @@ const CoursewareGenerationEditor = ({
     const outline = buildIslideOutlineFromMaterialSlides(courseTitle, materialSlides);
     const nodes = countOutlineNodes(outline);
     if (nodes > 68) {
-      setGenError('大纲节点过多，请精简第四步内容后再试。');
+      setGenError('大纲节点过多，请先精简课程大纲内容后再试。');
       return;
     }
 
@@ -209,7 +209,7 @@ const CoursewareGenerationEditor = ({
         <GenerationProgressScreen
           layout="embedded"
           title="正在生成课件 PPT"
-          subtitle="已结合第四步大纲与所选阿里云主题，正在调用智能排版服务，请稍候"
+          subtitle="已结合上一步大纲与所选阿里云主题，正在调用智能排版服务，请稍候"
           stepLabels={['解析大纲结构', '应用主题风格', '合成演示文件']}
         />
       </div>
@@ -248,7 +248,7 @@ const CoursewareGenerationEditor = ({
           <div>
             <h2 className="text-[15px] font-bold text-gray-800 whitespace-nowrap">选择模板创建 PPT</h2>
             <p className="text-[11px] text-gray-500 mt-0.5">
-              已载入第四步共 <strong className="text-gray-700">{materialSlides.length}</strong> 页大纲
+              已载入上一步共 <strong className="text-gray-700">{materialSlides.length}</strong> 页大纲
               {!isIslideMarketplaceConfigured() && (
                 <span className="text-amber-600 ml-2">（未配置 AppCode 时无法使用阿里云主题生成）</span>
               )}
