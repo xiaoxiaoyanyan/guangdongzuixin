@@ -10,6 +10,7 @@ dotenvConfig({ path: path.join(_projectRoot, '.env') });
 dotenvConfig({ path: path.join(_projectRoot, '.env.local'), override: true });
 
 import cors from 'cors';
+import crypto from 'node:crypto';
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
@@ -26,7 +27,63 @@ const __dirname = _serverDir;
 const ROOT = _projectRoot;
 const UPLOAD_ROOT = path.join(__dirname, 'uploads');
 
-const PORT = Number(process.env.PORT || process.env.SERVER_PORT || 8787);
+const PREFERRED_PORT = Number(process.env.PORT || process.env.SERVER_PORT || 8787);
+const MAX_PORT_RETRIES = 10;
+
+/**
+ * 尝试绑定端口，如果被占用则尝试下一个端口
+ * 避免 dev:full 因为后端端口冲突而整个崩溃
+ */
+async function startServerWithRetry() {
+  let port = PREFERRED_PORT;
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= MAX_PORT_RETRIES; attempt++) {
+    try {
+      await new Promise((resolve, reject) => {
+        const server = app.listen(port, '0.0.0.0', async () => {
+          console.log(
+            `[ke-api] ✅ 启动成功 http://0.0.0.0:${port}  (尝试 ${attempt + 1}/${MAX_PORT_RETRIES + 1})`
+          );
+          console.log(`[ke-api] health: http://localhost:${port}/api/health`);
+          console.log(`[ke-api] storage: ${isOssConfigured() ? 'OSS' : 'local'}`);
+
+          try {
+            await seedDefaultAdmin();
+          } catch (e) {
+            console.warn('[users] 种子管理员初始化跳过:', e.message);
+          }
+
+          resolve(server);
+        });
+
+        server.on('error', (err) => {
+          if (err.code === 'EADDRINUSE') {
+            console.warn(`[ke-api] ⚠️  端口 ${port} 被占用，尝试下一个端口...`);
+            server.close();
+            reject(err);
+          } else {
+            reject(err);
+          }
+        });
+      });
+
+      // 成功启动，返回实际端口
+      return port;
+    } catch (err) {
+      lastError = err;
+      if (err.code === 'EADDRINUSE') {
+        port++;
+        continue;
+      }
+      throw err; // 其他错误直接抛出
+    }
+  }
+
+  console.error(`[ke-api] ❌ 无法启动，后端端口 ${PREFERRED_PORT}~${port} 均被占用`);
+  console.error('[ke-api] 建议：kill 占用进程或设置 SERVER_PORT=xxxx');
+  throw lastError;
+}
 
 /**
  * 上传时音频为 AUDIO_PENDING，在 anchor/run 或 filter/run 前统一转写（硅基/Dify）。
@@ -488,6 +545,46 @@ app.use('/islide-api', async (req, res) => {
   }
 });
 
+// ── AIPPT auth code ────────────────────────────────────────────────────────
+
+const AIPPT_API_KEY = process.env.AIPPT_API_KEY || '';
+const AIPPT_SECRET_KEY = process.env.AIPPT_SECRET_KEY || '';
+
+function signAippt(method, uri, timestamp) {
+  const stringToSign = `${method}@${uri}@${timestamp}`;
+  return crypto.createHmac('sha1', AIPPT_SECRET_KEY).update(stringToSign).digest('base64');
+}
+
+app.get('/api/aippt/code', async (_req, res) => {
+  try {
+    if (!AIPPT_API_KEY || !AIPPT_SECRET_KEY) {
+      return res.status(500).json({ error: 'AIPPT 凭证未配置（AIPPT_API_KEY / AIPPT_SECRET_KEY）' });
+    }
+    const uid = `course_${Date.now()}`;
+    const channel = 'course-create';
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const apiUri = '/api/grant/code/';
+    const signature = signAippt('GET', apiUri, timestamp);
+    const url = `https://co.aippt.cn/api/grant/code?uid=${encodeURIComponent(uid)}&channel=${encodeURIComponent(channel)}`;
+    const r = await fetch(url, {
+      headers: {
+        'x-api-key': AIPPT_API_KEY,
+        'x-timestamp': timestamp,
+        'x-signature': signature,
+      },
+    });
+    const data = await r.json();
+    if (!r.ok || data.code !== 0) {
+      console.error('[aippt] grant code 失败:', JSON.stringify(data));
+      return res.status(502).json({ error: data.msg || 'AIPPT 授权失败' });
+    }
+    res.json({ code: data.data.code });
+  } catch (e) {
+    console.error('[aippt/code]', e);
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
 // ── Auth middleware ──────────────────────────────────────────────────────────
 
 function authMiddleware(req, res, next) {
@@ -658,13 +755,8 @@ if (serveStatic && fs.existsSync(outDir)) {
   console.warn('[ke-api] SERVE_STATIC 已开启但缺少 out/，请先执行 npm run build');
 }
 
-app.listen(PORT, '0.0.0.0', async () => {
-  console.log(
-    `[ke-api] http://0.0.0.0:${PORT}  health: /api/health  storage: ${isOssConfigured() ? 'OSS' : 'local'}`
-  );
-  try {
-    await seedDefaultAdmin();
-  } catch (e) {
-    console.warn('[users] 种子管理员初始化跳过:', e.message);
-  }
+// 使用带重试的启动函数（支持端口冲突自动跳过）
+startServerWithRetry().catch((err) => {
+  console.error('[ke-api] 启动失败:', err.message);
+  process.exit(1);
 });

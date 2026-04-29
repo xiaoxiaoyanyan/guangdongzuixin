@@ -36,6 +36,8 @@ interface ImportMetaEnv {
 
   /** 阿里云市场 iSlide：AppCode（第四步课件生成，勿提交仓库） */
   readonly VITE_ISLIDE_APPCODE?: string;
+  /** API 基础路径，默认 /api（Vite 会代理到后端 8787） */
+  readonly VITE_API_BASE?: string;
 }
 
 interface ImportMeta {

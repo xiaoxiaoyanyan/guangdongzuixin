@@ -93,7 +93,7 @@ const AnalysisPanel = ({
             拟开发主题名
           </p>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-[13px] px-4 py-2 rounded-full border border-blue-100 font-semibold">
+            <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-[13px] px-4 py-2 rounded-full border border-blue-100 font-semibold single-line" style={{maxWidth: '320px'}}>
               <i className="ri-bookmark-fill text-blue-400 text-xs" />
               {generatedTopicName}
             </span>

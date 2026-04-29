@@ -1,4 +1,4 @@
-const base = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') ?? '';
+const base = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') || '/api';
 
 export type UserRole = '管理员' | '内训师' | '学员';
 export type UserStatus = '启用' | '停用';

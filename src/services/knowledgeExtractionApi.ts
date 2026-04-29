@@ -1,4 +1,4 @@
-const base = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') ?? '';
+const base = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '') || '/api';
 
 export type KeSession = {
   id: string;

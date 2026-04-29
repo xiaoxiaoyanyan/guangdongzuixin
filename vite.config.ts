@@ -11,11 +11,14 @@ const isPreview = process.env.IS_PREVIEW ? true : false;
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const difyProxyTarget =
-    env.DIFY_PROXY_TARGET || "https://api.dify.ai";
+    env.DIFY_PROXY_TARGET || env.VITE_DIFY_BASE_URL?.startsWith('http') 
+      ? env.VITE_DIFY_BASE_URL?.replace(/\/v1$/, '') || "https://api.dify.ai"
+      : "https://api.dify.ai";
   const islideProxyTarget =
     env.ISLIDE_PROXY_TARGET || "https://islide.market.alicloudapi.com";
+  const backendPort = env.SERVER_PORT || env.PORT || "8787";
   const apiProxyTarget =
-    env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8787";
+    env.VITE_API_PROXY_TARGET || `http://127.0.0.1:${backendPort}`;
 
   return {
   define: {

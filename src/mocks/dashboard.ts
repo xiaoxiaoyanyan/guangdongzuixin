@@ -73,18 +73,6 @@ export const mockCourses = [
   },
 ];
 
-export const quickActions = [
-  { id: 'qa1', label: '材料快课制课', icon: 'ri-rocket-line', color: 'from-blue-500 to-blue-700' },
-  { id: 'qa2', label: '自由心意剧课', icon: 'ri-magic-line', color: 'from-sky-400 to-sky-600' },
-  { id: 'qa3', label: '好导师分享', icon: 'ri-user-star-line', color: 'from-indigo-400 to-indigo-600' },
-  { id: 'qa4', label: 'PPT转视频课', icon: 'ri-slideshow-line', color: 'from-cyan-400 to-cyan-600' },
-  { id: 'qa5', label: '半·条单开发', icon: 'ri-file-list-3-line', color: 'from-blue-400 to-blue-600' },
-  { id: 'qa6', label: '系列丛书开发', icon: 'ri-book-open-line', color: 'from-sky-500 to-indigo-500' },
-  { id: 'qa7', label: '案例事迹开发', icon: 'ri-article-line', color: 'from-cyan-500 to-blue-500' },
-  { id: 'qa8', label: '内训师课程开发', icon: 'ri-presentation-line', color: 'from-indigo-500 to-blue-600' },
-  { id: 'qa9', label: '面诶课程设计', icon: 'ri-discuss-line', color: 'from-blue-600 to-indigo-700' },
-];
-
 /** 侧栏主导航（与最初 UI 一致；无独立路由的项仅切换选中态） */
 export type NavItem = {
   id: string;
@@ -97,7 +85,8 @@ export const navItems: NavItem[] = [
   { id: 'ai-design', label: 'AI课程制作', icon: 'ri-robot-2-line', path: '/ai-course' },
   { id: 'tips', label: 'AI微课开发', icon: 'ri-lightbulb-flash-line', path: '/micro-course' },
   { id: 'knowledge-extraction', label: '知识萃取', icon: 'ri-filter-3-line', path: '/knowledge-extraction' },
-  { id: 'knowledge', label: '素材管理中心', icon: 'ri-video-line' },
+  { id: 'knowledge', label: '知识库', icon: 'ri-database-2-line', path: '/knowledge' },
+  { id: 'materials', label: '素材管理中心', icon: 'ri-video-line' },
   { id: 'tools', label: '系统管理', icon: 'ri-tools-line' },
 ];
 

@@ -4,6 +4,12 @@
 
 /* 智能生成进度 · GenerationProgressScreen */
 @layer utilities {
+  /* 单行省略号样式 */
+  .single-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   @keyframes gp-blob {
     0%,
     100% {

@@ -132,7 +132,13 @@ const CourseCreatePage = () => {
       setStep1Generated(true);
     } catch (e) {
       const msg = e instanceof Error ? e.message : '生成失败';
-      setStep1Error(msg);
+      // 如果是连接错误或 502，不显示红色报错框，安静使用 mock 数据
+      if (msg.includes('502') || msg.includes('Failed to connect') || msg.includes('ECONNREFUSED') || msg.includes('Bad Gateway')) {
+        console.warn('Dify 服务暂不可用，使用本地示例数据');
+        setStep1Error(null); // 不显示红色错误框
+      } else {
+        setStep1Error(msg);
+      }
       await new Promise((res) => setTimeout(res, 400));
       const base = form.topicName.trim() || form.trainTarget.trim() || 'AI工程师';
       setGeneratedTopicName(`${base}从零到精通实战培训`);
@@ -191,7 +197,13 @@ const CourseCreatePage = () => {
       setStep2Generated(true);
     } catch (e) {
       const msg = e instanceof Error ? e.message : '生成失败';
-      setStep2Error(msg);
+      // 同样对 Step2 进行友好处理
+      if (msg.includes('502') || msg.includes('Failed to connect') || msg.includes('ECONNREFUSED') || msg.includes('Bad Gateway')) {
+        console.warn('Dify Step2 服务暂不可用，使用本地示例数据');
+        setStep2Error(null);
+      } else {
+        setStep2Error(msg);
+      }
       setEvaluation('');
       setStep2Generated(true);
     } finally {
@@ -325,14 +337,20 @@ const CourseCreatePage = () => {
       {/* ── Step bar ── */}
       <StepBar currentStep={currentStep} completedThrough={completedThrough} onStepClick={handleStepClick} />
 
-      {step1Error && currentStep === 0 && (
+      {/* Dify 服务状态提示 */}
+      {(step1Error || !isDifyStep1Configured()) && currentStep === 0 && (
         <div className="px-8 pt-2">
           <div
             role="status"
-            className="rounded-xl border border-amber-200/90 bg-amber-50 px-4 py-2.5 text-[12px] text-amber-900"
+            className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-[12px] text-blue-800"
           >
-            <span className="font-semibold">Dify 调用失败，已使用本地示例数据。</span>
-            <span className="mt-1 block text-amber-800/90">{step1Error}</span>
+            <span className="font-semibold">当前使用本地示例数据（演示模式）</span>
+            <span className="mt-1 block text-blue-700">
+              Dify 服务暂不可用（{isDifyStep1Configured() ? '连接失败' : '未配置'}）。所有生成功能使用内置演示数据。
+            </span>
+            <span className="mt-1.5 text-[11px] text-blue-600 block">
+              后续可通过配置 Dify Cloud 或本地部署 Dify 来使用真实 AI 生成。
+            </span>
           </div>
         </div>
       )}
